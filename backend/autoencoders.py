@@ -13,10 +13,12 @@ class Autoencoder(nn.Module):
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 128),
             nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(128, encoding_dim),  # Compressed representation
         )
         self.decoder = nn.Sequential(
             nn.Linear(encoding_dim, 128),
+            nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, input_dim),  # Reconstruct original input
         )
@@ -27,9 +29,17 @@ class Autoencoder(nn.Module):
         return encoded, decoded
 
 
-def train_predict_autoencoder(model, data, epochs=50, batch_size=256, lr=0.001):
+def train_predict_autoencoder(
+    model,
+    data,
+    epochs=50,
+    batch_size=256,
+    lr=0.001,
+    l1_penalty=0.001,
+    weight_decay=1e-5,
+):
     """
-    Train the autoencoder model and make the predictions.
+    Train the autoencoder model and make the predictions, with regularization to penalize large encodings.
 
     Args:
         model: Autoencoder instance
@@ -37,6 +47,8 @@ def train_predict_autoencoder(model, data, epochs=50, batch_size=256, lr=0.001):
         epochs: Number of training epochs
         batch_size: Size of each training batch
         lr: Learning rate
+        l1_penalty: Weight of the L1 regularization on encodings
+        weight_decay: Weight decay to apply
 
     Returns:
         trained_model: Trained Autoencoder model
@@ -47,7 +59,7 @@ def train_predict_autoencoder(model, data, epochs=50, batch_size=256, lr=0.001):
 
     # Define loss function and optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     # Training loop
     for epoch in range(epochs):
@@ -57,8 +69,20 @@ def train_predict_autoencoder(model, data, epochs=50, batch_size=256, lr=0.001):
         for i in range(0, len(data_tensor), batch_size):
             batch = data_tensor[i : i + batch_size]
             optimizer.zero_grad()
+
+            # Forward pass
             encoded, decoded = model(batch)
-            loss = criterion(decoded, batch)
+
+            # Reconstruction loss (MSE)
+            reconstruction_loss = criterion(decoded, batch)
+
+            # Regularization loss (L1 penalty on encoded values)
+            l1_loss = l1_penalty * torch.mean(torch.abs(encoded))
+
+            # Total loss
+            loss = reconstruction_loss + l1_loss
+
+            # Backpropagation and optimization
             loss.backward()
             optimizer.step()
 
