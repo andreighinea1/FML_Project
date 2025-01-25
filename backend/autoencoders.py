@@ -1,23 +1,24 @@
+import numpy as np
 import torch
 from torch import nn, optim
-import numpy as np
 
 
 class Autoencoder(nn.Module):
     """
     A PyTorch implementation of an Autoencoder.
     """
+
     def __init__(self, input_dim, encoding_dim):
         super(Autoencoder, self).__init__()
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 128),
             nn.ReLU(),
-            nn.Linear(128, encoding_dim)  # Compressed representation
+            nn.Linear(128, encoding_dim),  # Compressed representation
         )
         self.decoder = nn.Sequential(
             nn.Linear(encoding_dim, 128),
             nn.ReLU(),
-            nn.Linear(128, input_dim)  # Reconstruct original input
+            nn.Linear(128, input_dim),  # Reconstruct original input
         )
 
     def forward(self, x):
@@ -50,14 +51,22 @@ def train_predict_autoencoder(model, data, epochs=50, batch_size=256, lr=0.001):
 
     # Training loop
     for epoch in range(epochs):
+        epoch_loss = 0.0
+        num_batches = 0
+
         for i in range(0, len(data_tensor), batch_size):
-            batch = data_tensor[i:i + batch_size]
+            batch = data_tensor[i : i + batch_size]
             optimizer.zero_grad()
             encoded, decoded = model(batch)
             loss = criterion(decoded, batch)
             loss.backward()
             optimizer.step()
-        print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss.item():.4f}")
+
+            epoch_loss += loss.item()
+            num_batches += 1
+
+        avg_loss = epoch_loss / num_batches
+        print(f"Epoch {epoch + 1}/{epochs}, Avg Loss: {avg_loss:.4f}")
 
     # Generate embeddings after training
     with torch.no_grad():
