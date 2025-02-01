@@ -1,13 +1,13 @@
 import warnings
 
-import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+from sklearn.svm import SVR
 
 # Suppress warnings globally
 warnings.filterwarnings("ignore")
@@ -16,41 +16,22 @@ warnings.filterwarnings("ignore")
 def objective(trial, model_name, X_train, y_train, X_test, y_test):
     """
     Objective function for hyperparameter tuning with Optuna.
-    Optimizes based only on `sp500_next_1` (1-day ahead prediction).
+    Optimizes for R² score.
     """
-    # Use only the first prediction target (sp500_next_1)
+    # Use only the first target (sp500_next_1)
     y_train = y_train.iloc[:, 0]
     y_test = y_test.iloc[:, 0]
 
-    if model_name == "LightGBM":
+    if model_name == "Ridge":
+        params = {"alpha": trial.suggest_loguniform("alpha", 0.01, 10)}
+        model = Ridge(**params)
+    elif model_name == "SVR":
         params = {
-            "n_estimators": trial.suggest_int("n_estimators", 750, 1000),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 0.01, 0.1),
-            "max_depth": trial.suggest_int("max_depth", 6, 12),
-            "num_leaves": trial.suggest_int("num_leaves", 20, 150),
-            "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
-            "colsample_bytree": trial.suggest_uniform("colsample_bytree", 0.5, 1.0),
-            "subsample": trial.suggest_uniform("subsample", 0.5, 1.0),
-            "reg_lambda": trial.suggest_loguniform("reg_lambda", 1e-4, 0.1),
-            "reg_alpha": trial.suggest_loguniform("reg_alpha", 1e-4, 0.1),
-            "verbose": -1,
+            "C": trial.suggest_loguniform("C", 0.1, 10),
+            "epsilon": trial.suggest_loguniform("epsilon", 0.01, 1),
+            "kernel": trial.suggest_categorical("kernel", ["rbf", "linear", "poly"]),
         }
-        model = lgb.LGBMRegressor(**params)
-    elif model_name == "XGBoost":
-        params = {
-            "n_estimators": trial.suggest_int("n_estimators", 750, 1000),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 0.01, 0.2),
-            "max_depth": trial.suggest_int("max_depth", 3, 12),
-            "min_child_weight": trial.suggest_int("min_child_weight", 1, 50),
-            "colsample_bytree": trial.suggest_uniform("colsample_bytree", 0.5, 1.0),
-            "subsample": trial.suggest_uniform("subsample", 0.5, 1.0),
-            "gamma": trial.suggest_loguniform("gamma", 1e-4, 1.0),
-            "reg_lambda": trial.suggest_loguniform("reg_lambda", 1e-4, 1.0),
-            "reg_alpha": trial.suggest_loguniform("reg_alpha", 1e-4, 1.0),
-            "enable_categorical": True,
-            "verbosity": 0,
-        }
-        model = xgb.XGBRegressor(**params)
+        model = SVR(**params)
     else:
         raise ValueError("Unsupported model!")
 
@@ -62,10 +43,10 @@ def objective(trial, model_name, X_train, y_train, X_test, y_test):
     # Predict
     y_pred = model.predict(X_test)
 
-    # Compute MSE only for 1-day ahead prediction
-    mse = mean_squared_error(y_test, y_pred)
+    # Compute R² score (maximize)
+    r2 = r2_score(y_test, y_pred)
 
-    return mse  # Optuna minimizes this value
+    return r2  # Optuna will maximize this
 
 
 def prepare_data(training_df, days_to_predict):
@@ -100,15 +81,12 @@ def train_model(model_name, X_train, y_train, X_test, **kwargs):
     # Model mapping
     model_classes = {
         "LinearRegression": LinearRegression,
-        "LightGBM": lgb.LGBMRegressor,
-        "XGBoost": xgb.XGBRegressor,
+        "Ridge": Ridge,
+        "SVR": SVR,  # Support Vector Regressor
     }
 
     if model_name not in model_classes:
         raise ValueError(f"Unsupported model: {model_name}")
-
-    if model_name == "XGBoost":
-        kwargs["enable_categorical"] = True
 
     # Handle multi-output case
     multi_output = len(y_train.shape) > 1 and y_train.shape[1] > 1
