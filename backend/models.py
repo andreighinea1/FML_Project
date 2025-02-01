@@ -1,3 +1,5 @@
+import warnings
+
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,22 +8,31 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
+# Suppress warnings globally
+warnings.filterwarnings("ignore")
+
 
 def objective(trial, model_name, X_train, y_train, X_test, y_test):
     """
     Objective function for hyperparameter tuning with Optuna.
+    Optimizes based only on `sp500_next_1` (1-day ahead prediction).
     """
+    # Use only the first prediction target (sp500_next_1)
+    y_train = y_train.iloc[:, 0]
+    y_test = y_test.iloc[:, 0]
+
     if model_name == "LightGBM":
         params = {
             "n_estimators": 500,
-            "learning_rate": trial.suggest_loguniform("learning_rate", 0.01, 0.2),
-            "max_depth": trial.suggest_int("max_depth", 3, 12),
+            "learning_rate": trial.suggest_loguniform("learning_rate", 0.01, 0.1),
+            "max_depth": trial.suggest_int("max_depth", 6, 12),
             "num_leaves": trial.suggest_int("num_leaves", 20, 150),
-            "min_child_samples": trial.suggest_int("min_child_samples", 10, 100),
+            "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
             "colsample_bytree": trial.suggest_uniform("colsample_bytree", 0.5, 1.0),
             "subsample": trial.suggest_uniform("subsample", 0.5, 1.0),
-            "reg_lambda": trial.suggest_loguniform("reg_lambda", 1e-4, 1.0),
-            "reg_alpha": trial.suggest_loguniform("reg_alpha", 1e-4, 1.0),
+            "reg_lambda": trial.suggest_loguniform("reg_lambda", 1e-4, 0.1),
+            "reg_alpha": trial.suggest_loguniform("reg_alpha", 1e-4, 0.1),
+            "verbose": -1,
         }
         model = lgb.LGBMRegressor(**params)
     elif model_name == "XGBoost":
@@ -35,18 +46,22 @@ def objective(trial, model_name, X_train, y_train, X_test, y_test):
             "gamma": trial.suggest_loguniform("gamma", 1e-4, 1.0),
             "reg_lambda": trial.suggest_loguniform("reg_lambda", 1e-4, 1.0),
             "reg_alpha": trial.suggest_loguniform("reg_alpha", 1e-4, 1.0),
+            "enable_categorical": True,
+            "verbosity": 0,
         }
         model = xgb.XGBRegressor(**params)
     else:
         raise ValueError("Unsupported model!")
 
-    # Train model
-    model.fit(X_train, y_train)
+    # Train model (suppress output)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        model.fit(X_train, y_train)
 
     # Predict
     y_pred = model.predict(X_test)
 
-    # Compute MSE for evaluation
+    # Compute MSE only for 1-day ahead prediction
     mse = mean_squared_error(y_test, y_pred)
 
     return mse  # Optuna minimizes this value
@@ -57,15 +72,18 @@ def prepare_data(training_df, days_to_predict):
     df = training_df.copy()
 
     # Step 1: Create future target columns (shifting by respective days)
+    next_day_columns = []
     for day in days_to_predict:
-        df[f"sp500_next_{day}"] = df["sp500"].shift(-day)
+        next_day_col = f"sp500_next_{day}"
+        df[next_day_col] = df["sp500"].shift(-day)
+        next_day_columns.append(next_day_col)
 
     # Drop rows with NaN values
     df = df.dropna()
 
     # Step 2: Define features (X) and targets (y)
-    X = df.drop(columns=[f"sp500_next_{day}" for day in days_to_predict])
-    y = df[[f"sp500_next_{day}" for day in days_to_predict]]
+    X = df.drop(columns=next_day_columns)
+    y = df[next_day_columns]
 
     # Step 3: Perform time-based train-test split
     split_index = int(0.8 * len(X))  # 80% for training
