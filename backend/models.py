@@ -2,6 +2,7 @@ import warnings
 
 import lightgbm as lgb
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.linear_model import LinearRegression
@@ -23,7 +24,7 @@ def objective(trial, model_name, X_train, y_train, X_test, y_test):
 
     if model_name == "LightGBM":
         params = {
-            "n_estimators": 500,
+            "n_estimators": trial.suggest_int("n_estimators", 750, 1000),
             "learning_rate": trial.suggest_loguniform("learning_rate", 0.01, 0.1),
             "max_depth": trial.suggest_int("max_depth", 6, 12),
             "num_leaves": trial.suggest_int("num_leaves", 20, 150),
@@ -37,7 +38,7 @@ def objective(trial, model_name, X_train, y_train, X_test, y_test):
         model = lgb.LGBMRegressor(**params)
     elif model_name == "XGBoost":
         params = {
-            "n_estimators": 500,
+            "n_estimators": trial.suggest_int("n_estimators", 750, 1000),
             "learning_rate": trial.suggest_loguniform("learning_rate", 0.01, 0.2),
             "max_depth": trial.suggest_int("max_depth", 3, 12),
             "min_child_weight": trial.suggest_int("min_child_weight", 1, 50),
@@ -94,23 +95,47 @@ def prepare_data(training_df, days_to_predict):
 
 
 def train_model(model_name, X_train, y_train, X_test, **kwargs):
-    """Trains a model based on its name and returns predictions."""
-    if model_name == "LinearRegression":
-        model = LinearRegression(**kwargs)
-    elif model_name == "LightGBM":
-        model = lgb.LGBMRegressor(**kwargs)
-    elif model_name == "XGBoost":
-        model = xgb.XGBRegressor(**kwargs)
-    else:
-        raise ValueError("Unsupported model!")
+    """Trains a model for each target column if multi-output, else trains a single model."""
 
-    # Train the model
-    model.fit(X_train, y_train)
+    # Model mapping
+    model_classes = {
+        "LinearRegression": LinearRegression,
+        "LightGBM": lgb.LGBMRegressor,
+        "XGBoost": xgb.XGBRegressor,
+    }
 
-    # Make predictions
-    y_pred = model.predict(X_test)
+    if model_name not in model_classes:
+        raise ValueError(f"Unsupported model: {model_name}")
 
-    return model, y_pred
+    if model_name == "XGBoost":
+        kwargs["enable_categorical"] = True
+
+    # Handle multi-output case
+    multi_output = len(y_train.shape) > 1 and y_train.shape[1] > 1
+    models, y_pred_list = [], []
+
+    target_columns = y_train.columns if multi_output else [y_train.name]
+
+    for target in target_columns:
+        print(f"\nTraining {model_name} for target: {target}...\n")
+
+        # Initialize model
+        model = model_classes[model_name](**kwargs)
+
+        # Train model
+        model.fit(X_train, y_train[target])
+
+        # Predict
+        y_pred = model.predict(X_test)
+
+        models.append(model)
+        y_pred_list.append(y_pred)
+
+    # Stack predictions for multiple outputs
+    y_pred = np.column_stack(y_pred_list) if multi_output else y_pred_list[0]
+
+    # Returns a list of models if multi-output, single model otherwise
+    return models, y_pred
 
 
 def evaluate_model(model_name, y_test, y_pred, days_to_predict):
