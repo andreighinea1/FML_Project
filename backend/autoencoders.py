@@ -40,7 +40,7 @@ def train_predict_autoencoder(
     debug=True,
 ):
     """
-    Train the autoencoder model and make the predictions, with regularization to penalize large encodings.
+    Train the autoencoder model and keep the one with the lowest loss.
 
     Args:
         model: Autoencoder instance
@@ -53,8 +53,9 @@ def train_predict_autoencoder(
         debug: If to print debug messages
 
     Returns:
-        trained_model: Trained Autoencoder model
+        best_model: Trained Autoencoder model (with the lowest loss)
         embeddings: Encoded representation of the input data (as a NumPy array)
+        best_loss: Best average loss recorded during training
     """
     # Convert NumPy array to PyTorch tensor
     data_tensor = torch.tensor(data, dtype=torch.float32)
@@ -63,9 +64,12 @@ def train_predict_autoencoder(
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    # Training loop
-    last_avg_loss = 1.0
-    for epoch in range(epochs):
+    # Track the best loss and best model state
+    best_loss = float("inf")
+    best_epoch = -1
+    best_model_state = None
+
+    for epoch in range(1, epochs + 1):
         epoch_loss = 0.0
         num_batches = 0
 
@@ -93,9 +97,21 @@ def train_predict_autoencoder(
             num_batches += 1
 
         avg_loss = epoch_loss / num_batches
-        last_avg_loss = avg_loss
+
+        # Save the best model
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            best_epoch = epoch
+            best_model_state = model.state_dict()  # Save best model state
+
         if debug:
-            print(f"Epoch {epoch + 1}/{epochs}, Avg Loss: {avg_loss:.4f}")
+            print(
+                f"Epoch {epoch}/{epochs}, Avg Loss: {avg_loss:.4f}, "
+                f"Best Loss: {best_loss:.4f} at Epoch {best_epoch}"
+            )
+
+    # Restore the best model state
+    model.load_state_dict(best_model_state)
 
     # Generate embeddings after training
     with torch.no_grad():
@@ -104,7 +120,10 @@ def train_predict_autoencoder(
     # Convert embeddings back to NumPy
     embeddings = embeddings_tensor.numpy()
 
-    return model, embeddings, last_avg_loss
+    if debug:
+        print(f"\n✅ Training Completed! Best Loss: {best_loss:.4f} at Epoch {best_epoch}")
+
+    return model, embeddings, best_loss
 
 
 def objective(trial, data):
@@ -118,8 +137,8 @@ def objective(trial, data):
     lr = trial.suggest_loguniform("lr", 1e-4, 1e-2)
     l1_penalty = trial.suggest_loguniform("l1_penalty", 1e-5, 1e-2)
     weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3)
-    batch_size = trial.suggest_categorical("batch_size", [256, 512])
-    epochs = 50
+    batch_size = trial.suggest_categorical("batch_size", [256, 512, 1024])
+    epochs = 75
 
     input_dim = data.shape[1]
 
@@ -127,7 +146,7 @@ def objective(trial, data):
     model = Autoencoder(input_dim, encoding_dim, hidden_dim, dropout_rate)
 
     # Train the model
-    _, embeddings, last_avg_mse_loss = train_predict_autoencoder(
+    _, embeddings, best_loss = train_predict_autoencoder(
         model,
         data,
         epochs=epochs,
@@ -138,4 +157,4 @@ def objective(trial, data):
         debug=False,
     )
 
-    return last_avg_mse_loss  # Optuna minimizes this
+    return best_loss  # Optuna minimizes this

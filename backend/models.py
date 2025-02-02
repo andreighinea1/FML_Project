@@ -1,3 +1,4 @@
+import os
 import warnings
 
 import matplotlib.pyplot as plt
@@ -136,8 +137,14 @@ def evaluate_model(model_name, y_test, y_pred, days_to_predict):
     return results
 
 
-def plot_predictions(y_test, y_pred, days_to_predict, results, model_name):
-    """Plots actual vs predicted values for each prediction horizon."""
+def plot_predictions(
+    y_test, y_pred, days_to_predict, results, model_name, save_dir="./plots/training"
+):
+    """Plots actual vs predicted values for each prediction horizon and saves plots."""
+
+    # Ensure the directory exists
+    os.makedirs(save_dir, exist_ok=True)
+
     for i, day in enumerate(days_to_predict):
         y_pred_aligned = (
             pd.Series(y_pred[:, i], index=y_test.index).shift(-day).dropna()
@@ -174,4 +181,12 @@ def plot_predictions(y_test, y_pred, days_to_predict, results, model_name):
         plt.ylabel("S&P 500 Index")
         plt.legend()
         plt.grid()
+
+        # Save plot
+        plot_filename = os.path.join(save_dir, f"{model_name}_day_{day}.png")
+        plt.savefig(plot_filename, bbox_inches="tight", dpi=300)
+
+        # Show the plot
         plt.show()
+
+        print(f"✅ Saved plot: {plot_filename}")
