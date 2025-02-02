@@ -5,22 +5,22 @@ from torch import nn, optim
 
 class Autoencoder(nn.Module):
     """
-    A PyTorch implementation of an Autoencoder.
+    A PyTorch implementation of an Autoencoder with flexible architecture.
     """
 
-    def __init__(self, input_dim, encoding_dim):
+    def __init__(self, input_dim, encoding_dim, hidden_dim, dropout_rate):
         super(Autoencoder, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Linear(input_dim, 128),
+            nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(128, encoding_dim),  # Compressed representation
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_dim, encoding_dim),  # Compressed representation
         )
         self.decoder = nn.Sequential(
-            nn.Linear(encoding_dim, 128),
-            nn.BatchNorm1d(128),
+            nn.Linear(encoding_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
-            nn.Linear(128, input_dim),  # Reconstruct original input
+            nn.Linear(hidden_dim, input_dim),  # Reconstruct original input
         )
 
     def forward(self, x):
@@ -37,6 +37,7 @@ def train_predict_autoencoder(
     lr=0.001,
     l1_penalty=0.001,
     weight_decay=1e-5,
+    debug=True,
 ):
     """
     Train the autoencoder model and make the predictions, with regularization to penalize large encodings.
@@ -49,6 +50,7 @@ def train_predict_autoencoder(
         lr: Learning rate
         l1_penalty: Weight of the L1 regularization on encodings
         weight_decay: Weight decay to apply
+        debug: If to print debug messages
 
     Returns:
         trained_model: Trained Autoencoder model
@@ -62,6 +64,7 @@ def train_predict_autoencoder(
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     # Training loop
+    last_avg_loss = 1.0
     for epoch in range(epochs):
         epoch_loss = 0.0
         num_batches = 0
@@ -90,7 +93,9 @@ def train_predict_autoencoder(
             num_batches += 1
 
         avg_loss = epoch_loss / num_batches
-        print(f"Epoch {epoch + 1}/{epochs}, Avg Loss: {avg_loss:.4f}")
+        last_avg_loss = avg_loss
+        if debug:
+            print(f"Epoch {epoch + 1}/{epochs}, Avg Loss: {avg_loss:.4f}")
 
     # Generate embeddings after training
     with torch.no_grad():
@@ -99,4 +104,38 @@ def train_predict_autoencoder(
     # Convert embeddings back to NumPy
     embeddings = embeddings_tensor.numpy()
 
-    return model, embeddings
+    return model, embeddings, last_avg_loss
+
+
+def objective(trial, data):
+    """
+    Optuna objective function for tuning the autoencoder hyperparameters.
+    """
+    # Sample hyperparameters
+    encoding_dim = trial.suggest_int("encoding_dim", 10, 30)
+    hidden_dim = trial.suggest_int("hidden_dim", 128, 512)
+    dropout_rate = trial.suggest_uniform("dropout_rate", 0.1, 0.3)
+    lr = trial.suggest_loguniform("lr", 1e-4, 1e-2)
+    l1_penalty = trial.suggest_loguniform("l1_penalty", 1e-5, 1e-2)
+    weight_decay = trial.suggest_loguniform("weight_decay", 1e-6, 1e-3)
+    batch_size = trial.suggest_categorical("batch_size", [256, 512])
+    epochs = 50
+
+    input_dim = data.shape[1]
+
+    # Create model
+    model = Autoencoder(input_dim, encoding_dim, hidden_dim, dropout_rate)
+
+    # Train the model
+    _, embeddings, last_avg_mse_loss = train_predict_autoencoder(
+        model,
+        data,
+        epochs=epochs,
+        batch_size=batch_size,
+        lr=lr,
+        l1_penalty=l1_penalty,
+        weight_decay=weight_decay,
+        debug=False,
+    )
+
+    return last_avg_mse_loss  # Optuna minimizes this
