@@ -36,14 +36,33 @@ Before developing predictive models, we analyzed relationships between key indic
 
 #### **Correlation Analysis**
 
-Understanding **correlations** between financial indicators helps determine which features are useful for predictions.
+Understanding **correlations** between financial indicators helps determine which features are useful for predictions. A
+**correlation heatmap** visualizes the relationships between different market variables, helping to identify which
+features have strong associations with the **S&P 500**.
 
 ![Correlation Heatmap](../plots/analysis/correlation_heatmap.png)
 
-- This heatmap shows how different financial indicators relate to each other.
-- **Red areas** indicate strong positive correlations, meaning the variables move together.
-- **Blue areas** represent negative correlations, where one increases as the other decreases.
-- The **S&P 500** is **strongly correlated** with **DJIA** and **HSI**, making them valuable for prediction.
+##### **Key Findings:**
+
+- **Strong positive correlations**:
+    - **DJIA (0.99)** and **HSI (0.70)**: These indices move almost in sync with the **S&P 500**, making them valuable
+      predictive features.
+    - **S&P 500 volume (0.60)** and **DJIA volume (0.62)**: Trading volumes show a positive correlation, indicating that
+      market activity follows similar patterns across indices.
+
+- **Moderate correlations**:
+    - **Economic Policy Uncertainty (EPU) (0.37)**: Higher uncertainty tends to accompany market fluctuations but with a
+      weaker direct relationship.
+
+- **Negative correlations**:
+    - **Joblessness (-0.49)** and **US 3-month bond yield (US3M) (-0.32)**: Higher unemployment and rising interest
+      rates often coincide with declining stock prices.
+
+- **VIX (Volatility Index)** (not strongly correlated but typically inversely related): A high **VIX** generally signals
+  increased market fear and potential downturns.
+
+These insights guided **feature selection**, ensuring that **correlated** and **economically significant**
+indicators were included in the predictive models.
 
 #### **Market Trends and Comparisons**
 
@@ -116,7 +135,8 @@ Understanding **correlations** between financial indicators helps determine whic
 
 #### Conclusion
 
-The analysis highlights key relationships between stock indices, trading volumes, interest rates, and macroeconomic factors. These insights will guide feature selection for machine learning models to improve stock market predictions.
+The analysis highlights key relationships between stock indices, trading volumes, interest rates, and macroeconomic
+factors. These insights will guide feature selection for machine learning models to improve stock market predictions.
 
 
 ---
@@ -171,7 +191,8 @@ We tested **three** regression models to predict the next **1, 7, 14, 21, and 28
 - **Train-Test Split:** 80% training, 20% testing (**strict time-based split** to prevent data leakage).
 - **Feature Scaling:** MinMax scaling applied to continuous features, **joblessness** treated as an **ordinal
   categorical** feature.
-- **Multi-Horizon Forecasting:** Predictions for **1, 7, 14, 21, and 28 days** into the future of S&P 500 index movement.
+- **Multi-Horizon Forecasting:** Predictions for **1, 7, 14, 21, and 28 days** into the future of S&P 500 index
+  movement.
 
 ---
 
