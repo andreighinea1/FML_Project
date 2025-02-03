@@ -177,34 +177,13 @@ most informative signals were extracted from historical data.
 
 ### **2.3 Feature Engineering**
 
-Based on the **data analysis**, we constructed **engineered features** that capture market trends more effectively.
+We engineered features to better capture market trends:
 
-#### **Rolling Statistics**
-
-**Rolling means and standard deviations** were computed over various timeframes to smooth short-term fluctuations and
-identify longer-term trends.
-
-- **Windows:** **7, 14, 30, 90, 365 days**
-- **Applied to:**
-    - S&P 500 index and volume
-    - DJIA index and volume
-    - HSI index
-    - VIX
-
-#### **Lagged Features**
-
-To capture historical trends and momentum, we created **365-day lagged features** for:
-
-- **S&P 500**
-- **VIX**
-- **S&P 500 volume**
-
-This helps capture past trends and seasonality.
-
-#### **Autoencoder Embeddings**
-
-To **reduce dimensionality**, a **feedforward autoencoder** was trained to **compress lagged features** into a
-**lower-dimensional representation**. The embeddings were later used as **additional input features** for the models.
+- **Rolling Statistics:** Mean and standard deviation over **7, 14, 30, 90, 365-day** windows for **S&P 500, DJIA, HSI,
+  VIX, and volumes** to smooth short-term noise.
+- **Lagged Features:** **365-day lags** for **S&P 500, VIX, and S&P 500 volume** to incorporate historical trends.
+- **Autoencoder Embeddings:** A **feedforward autoencoder** compressed lagged features into **lower-dimensional
+  representations** for improved learning.
 
 ---
 
@@ -214,11 +193,9 @@ We tested **three** regression models to predict the next **1, 7, 14, 21, and 28
 
 ### **3.1 Models Used**
 
-| Model                               | Description                                                   |
-|-------------------------------------|---------------------------------------------------------------|
-| **Linear Regression**               | Baseline model, interpretable and efficient                   |
-| **Ridge Regression**                | Regularized linear model to reduce overfitting                |
-| **Support Vector Regression (SVR)** | Captures nonlinear patterns, but sensitive to hyperparameters |
+- **Linear Regression:** Simple, interpretable, and efficient baseline.
+- **Ridge Regression:** Regularized linear model to prevent overfitting.
+- **Support Vector Regression (SVR):** Captures nonlinear patterns but is sensitive to hyperparameters.
 
 ### **3.2 Training Process**
 
@@ -237,33 +214,27 @@ hyperparameters through Optuna.
 
 ### **4.1 Autoencoder Hyperparameter Tuning**
 
-We optimized the following parameters:
+We optimized the following hyperparameters to minimize **MSE** on the reconstruction task:
 
-| Hyperparameter         | Range             |
-|------------------------|-------------------|
-| **Encoding Dimension** | 10 to 30          |
-| **Hidden Layer Size**  | 128 to 512        |
-| **Dropout Rate**       | 0.1 to 0.3        |
-| **Learning Rate**      | 0.0001 to 0.01    |
-| **L1 Regularization**  | 0.00001 to 0.01   |
-| **Weight Decay**       | 0.000001 to 0.001 |
-| **Batch Size**         | 256, 512, 1024    |
-| **Epochs**             | 75                |
+- **Encoding Dimension:** 10–30
+- **Hidden Layer Size:** 128–512
+- **Dropout Rate:** 0.1–0.3
+- **Learning Rate:** 0.0001–0.01
+- **L1 Regularization:** 0.00001–0.01
+- **Weight Decay:** 0.000001–0.001
+- **Batch Size:** 256, 512, 1024
+- **Epochs:** 75
 
-The optimization process minimized the **Mean Squared Error (MSE)** on the reconstruction task, selecting the best model
-state based on the lowest loss.
+The best model was selected based on the lowest loss.
 
 ### **4.2 Ridge and SVR Hyperparameter Tuning**
 
-Hyperparameters were tuned for **Ridge Regression** and **SVR**, focusing on maximizing **R² Score**:
+Hyperparameters were optimized to maximize **R² Score**, focusing on **first-day-ahead prediction (`sp500_next_1`)**:
 
-| Model                | Hyperparameters Optimized                            | Range                                                       |
-|----------------------|------------------------------------------------------|-------------------------------------------------------------|
-| **Ridge Regression** | Alpha (Regularization Strength)                      | 0.01 to 10                                                  |
-| **SVR**              | C (Regularization), Epsilon (Tolerance), Kernel Type | C: 0.1 to 10, Epsilon: 0.01 to 1, Kernel: rbf, linear, poly |
+- **Ridge Regression:** Tuned **alpha** (regularization strength) between **0.01 and 10**.
+- **SVR:** Tuned **C (0.1 to 10), epsilon (0.01 to 1), and kernel type (rbf, linear, poly)**.
 
-The optimization targeted the **first-day-ahead prediction (`sp500_next_1`)**, assuming improvements in this would
-generalize to longer-term predictions.
+Improvements in **short-term accuracy** were expected to generalize to longer prediction horizons.
 
 ---
 
