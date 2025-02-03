@@ -254,32 +254,32 @@ We evaluated models based on **Mean Squared Error (MSE)** and **R² Score** for 
 
 Below are the prediction plots for each model over different time horizons.
 
-#### **Linear Regression Predictions**
-
-<div style="text-align: center;">
-    <img src="../plots/training/LinearRegression_day_1.png" alt="Linear Regression (1 Day)" width="600"/>
-</div>
-<div style="text-align: center;">
-    <img src="../plots/training/LinearRegression_day_28.png" alt="Linear Regression (28 Days)" width="600"/>
-</div>
-
-#### **Ridge Regression Predictions**
-
-<div style="text-align: center;">
-    <img src="../plots/training/Ridge_day_1.png" alt="Ridge Regression (1 Day)" width="600"/>
-</div>
-<div style="text-align: center;">
-    <img src="../plots/training/Ridge_day_28.png" alt="Ridge Regression (28 Days)" width="600"/>
-</div>
-
-#### **SVR Predictions**
-
-<div style="text-align: center;">
-    <img src="../plots/training/SVR_day_1.png" alt="SVR (1 Day)" width="600"/>
-</div>
-<div style="text-align: center;">
-    <img src="../plots/training/SVR_day_28.png" alt="SVR (28 Days)" width="600"/>
-</div>
+<table>
+<tr>
+    <td style="text-align: center;">
+        <img src="../plots/training/LinearRegression_day_1.png" alt="Linear Regression (1 Day)" width="400"/>
+    </td>
+    <td style="text-align: center;">
+        <img src="../plots/training/LinearRegression_day_28.png" alt="Linear Regression (28 Days)" width="400"/>
+    </td>
+</tr>
+<tr>
+    <td style="text-align: center;">
+        <img src="../plots/training/Ridge_day_1.png" alt="Ridge Regression (1 Day)" width="400"/>
+    </td>
+    <td style="text-align: center;">
+        <img src="../plots/training/Ridge_day_28.png" alt="Ridge Regression (28 Days)" width="400"/>
+    </td>
+</tr>
+<tr>
+    <td style="text-align: center;">
+        <img src="../plots/training/SVR_day_1.png" alt="SVR (1 Day)" width="400"/>
+    </td>
+    <td style="text-align: center;">
+        <img src="../plots/training/SVR_day_28.png" alt="SVR (28 Days)" width="400"/>
+    </td>
+</tr>
+</table>
 
 ---
 
