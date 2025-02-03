@@ -6,16 +6,18 @@ This project aims to predict future values of the S&P 500 index using machine le
 financial and economic data. We developed a feature engineering pipeline, tested multiple regression models, and
 optimized hyperparameters to improve forecasting accuracy.
 
+---
+
 ## **2. Data Description**
 
 ### **2.1 Dataset Overview**
 
-The dataset contains historical daily stock market data, including:
+The dataset consists of historical daily stock market data, including:
 
 - **Market indices:** S&P 500, DJIA, HSI
 - **Trading volumes:** S&P 500 volume, DJIA volume
 - **Volatility index:** VIX
-- **Macroeconomic indicators:** ADS index, US 3-month bond yield, unemployment rate
+- **Macroeconomic indicators:** ADS index, US 3-month bond yield, joblessness
 - **Uncertainty metrics:** Economic Policy Uncertainty (EPU), Geopolitical Risk Index (GPRD)
 
 ### **2.2 Feature Engineering**
@@ -24,7 +26,7 @@ We constructed various engineered features to enhance model performance:
 
 #### **Rolling Statistics**
 
-Computed rolling **means** and **standard deviations** for different time windows to capture market trends over
+Used **rolling mean** and **standard deviations** for different time windows to capture market trends over
 different periods.
 
 - Windows used: **7, 14, 30, 90, 365 days**
@@ -36,18 +38,18 @@ different periods.
 
 #### **Lagged Features**
 
-Introduced **365-day lag features** for:
+Introduced **365-day lagged features** for:
 
 - S&P 500 index
 - VIX
 - S&P 500 volume
 
-This helps capture long-term dependencies and past market behavior.
+This helps capture past trends and seasonality.
 
 #### **Autoencoder Embeddings**
 
-Used an **autoencoder** to compress the high-dimensional lagged features into a **10-dimensional embedding**. The
-autoencoder was trained using reconstruction loss with L1 regularization to avoid large encodings.
+A **feedforward autoencoder** was trained to **compress lagged features** into a **lower-dimensional representation**.
+The embeddings were later used as additional input features for prediction models.
 
 ---
 
@@ -57,50 +59,61 @@ We tested **three** regression models to predict the next **1, 7, 14, 21, and 28
 
 ### **3.1 Models Used**
 
-| Model                               | Description                                                     |
-|-------------------------------------|-----------------------------------------------------------------|
-| **Linear Regression**               | Baseline model, used as a benchmark                             |
-| **Ridge Regression**                | Regularized linear regression to prevent overfitting            |
-| **Support Vector Regression (SVR)** | Captures complex relationships but is computationally expensive |
+| Model                               | Description                                                    |
+|-------------------------------------|----------------------------------------------------------------|
+| **Linear Regression**               | Baseline model, simple but interpretable                       |
+| **Ridge Regression**                | Regularized linear model to prevent overfitting                |
+| **Support Vector Regression (SVR)** | Captures nonlinear relationships, sensitive to hyperparameters |
 
 ### **3.2 Training Process**
 
-- **Train-Test Split:** 80% for training, 20% for testing (time-based split to prevent future data leakage).
-- **Feature Normalization:** Applied MinMax scaling to ensure consistent numerical ranges across features.
-- **Multi-Horizon Forecasting:** Models predict **1, 7, 14, 21, 28 days ahead**.
+- **Train-Test Split:** 80% training, 20% testing (strict time-based split to prevent data leakage).
+- **Feature Scaling:** MinMax scaling applied to continuous features, joblessness treated as an ordinal categorical
+  feature.
+- **Multi-Horizon Forecasting:** Models predict the next **1, 7, 14, 21, and 28 days** of S&P 500 index movement.
 
 ---
 
-## **4. Hyperparameter Tuning**
+## **4. Hyperparameter Tuning with Optuna**
 
-To improve model performance, we used **Optuna** for hyperparameter optimization.
+To optimize model performance, we used **Bayesian Optimization with Median Pruning** to efficiently tune
+hyperparameters through Optuna.
 
 ### **4.1 Autoencoder Hyperparameter Tuning**
 
-We optimized the following parameters using Bayesian Optimization:
+We optimized the following parameters:
 
-- **Encoding Dimension:** 10 to 30
-- **Hidden Layer Size:** 128 to 512
-- **Dropout Rate:** 0.1 to 0.3
-- **Learning Rate:** 0.0001 to 0.01
-- **L1 Regularization:** 0.00001 to 0.01
-- **Weight Decay:** 0.000001 to 0.001
-- **Batch Size:** 256 or 512
+| Hyperparameter         | Range             |
+|------------------------|-------------------|
+| **Encoding Dimension** | 10 to 30          |
+| **Hidden Layer Size**  | 128 to 512        |
+| **Dropout Rate**       | 0.1 to 0.3        |
+| **Learning Rate**      | 0.0001 to 0.01    |
+| **L1 Regularization**  | 0.00001 to 0.01   |
+| **Weight Decay**       | 0.000001 to 0.001 |
+| **Batch Size**         | 256, 512, 1024    |
+| **Epochs**             | 75                |
 
-### **4.2 Regression Model Tuning**
+The optimization process minimized the **Mean Squared Error (MSE)** on the reconstruction task, selecting the best model
+state based on the lowest loss.
 
-Hyperparameters optimized for Ridge and SVR models:
+### **4.2 Ridge and SVR Hyperparameter Tuning**
 
-| Model                | Hyperparameters Optimized                                   |
-|----------------------|-------------------------------------------------------------|
-| **Ridge Regression** | Alpha (Regularization Strength)                             |
-| **SVR**              | Kernel type, C (Regularization), Epsilon (Tolerance), Gamma |
+Hyperparameters were tuned for **Ridge Regression** and **SVR**, focusing on maximizing **R² Score**:
+
+| Model                | Hyperparameters Optimized                            | Range                                                       |
+|----------------------|------------------------------------------------------|-------------------------------------------------------------|
+| **Ridge Regression** | Alpha (Regularization Strength)                      | 0.01 to 10                                                  |
+| **SVR**              | C (Regularization), Epsilon (Tolerance), Kernel Type | C: 0.1 to 10, Epsilon: 0.01 to 1, Kernel: rbf, linear, poly |
+
+The optimization targeted the **first-day-ahead prediction (`sp500_next_1`)**, assuming improvements in this would
+generalize to longer-term predictions.
 
 ---
 
 ## **5. Results and Evaluation**
 
-We evaluated models based on **Mean Squared Error (MSE)** and **R² Score** for each prediction horizon.
+We evaluated models based on **Mean Squared Error (MSE)** and **R² Score** for each forecasting horizon.
 
 ### **5.1 Model Performance Table**
 
@@ -136,18 +149,25 @@ Below are the prediction plots for each model over different time horizons.
 
 ## **6. Conclusion**
 
-### **6.1 Key Findings**
+### **6.1 Key Takeaways**
 
 - **Feature Engineering**: Using rolling averages and lagged features helped capture market trends effectively.
-- **Model Performance**: Ridge Regression had the best performance across all horizons. SVR struggled with longer-term
-  predictions.
+- **Model Performance**: Ridge Regression was the best-performing model across all prediction horizons, followed by
+  Linear Regression. SVR struggled even with short-term predictions, but deteriorating fast for longer-term predictions.
 - **Prediction Accuracy**: Short-term (1-7 days) predictions were highly accurate (**R² > 0.99**), but accuracy
-  decreased for longer time horizons.
+  decreased for longer-term forecasts.
 
-### **6.2 Future Work**
+### **6.2 Future Improvements**
 
-To further improve predictions, we propose:
+- **Deep Learning Models:** Investigate LSTMs or Transformers for better sequential modeling.
+- **Additional Features:** Introduce macroeconomic variables such as bond yields, credit spreads, and investor
+  sentiment.
+- **Extended Forecasts:** Experiment with prediction windows beyond **28 days**.
 
-- **Exploring deep learning models (LSTM, Transformer)** to capture sequential dependencies.
-- **Incorporating alternative economic indicators** like bond yields, sector indices, and sentiment analysis.
-- **Extending prediction windows beyond 28 days** to evaluate long-term forecasting performance.
+---
+
+### **Final Thoughts**
+
+This project successfully demonstrated that machine learning models, particularly **Ridge Regression**, can provide
+highly accurate short-term forecasts for the S&P 500. However, longer-term predictions remain challenging, requiring
+further feature engineering and potential deep learning techniques.
