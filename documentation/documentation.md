@@ -32,13 +32,14 @@ The dataset consists of **historical daily stock market data**, including:
 
 ### **2.2 Exploratory Data Analysis (EDA)**
 
-Before developing predictive models, we analyzed relationships between key indicators to guide **feature selection**.
+Before building predictive models, we conducted an exploratory analysis to identify **key relationships** between
+financial indicators. This helped guide **feature selection**, ensuring we included the most relevant factors for
+predicting **S&P 500 movements**.
 
 #### **Correlation Analysis**
 
-Understanding **correlations** between financial indicators helps determine which features are useful for predictions. A
-**correlation heatmap** visualizes the relationships between different market variables, helping to identify which
-features have strong associations with the **S&P 500**.
+A **correlation heatmap** was used to visualize relationships between different financial indicators, highlighting which
+features are strongly associated with the **S&P 500**.
 
 ![Correlation Heatmap](../plots/analysis/correlation_heatmap.png)
 
@@ -58,11 +59,13 @@ features have strong associations with the **S&P 500**.
     - **Joblessness (-0.49)** and **US 3-month bond yield (US3M) (-0.32)**: Higher unemployment and rising interest
       rates often coincide with declining stock prices.
 
-- **VIX (Volatility Index)** (not strongly correlated but typically inversely related): A high **VIX** generally signals
-  increased market fear and potential downturns.
+- **VIX (Volatility Index):** While not highly correlated numerically, VIX is generally **inversely related** to the
+  S&P 500, with higher volatility often leading to market downturns.
 
 These insights guided **feature selection**, ensuring that **correlated** and **economically significant**
 indicators were included in the predictive models.
+
+---
 
 #### **Market Trends and Comparisons**
 
@@ -70,74 +73,87 @@ indicators were included in the predictive models.
 
 ![Normalized Stock Indices](../plots/analysis/normalized_stock_indices.png)
 
-- Compares **S&P 500 (blue), DJIA (green), and HSI (orange)** over time.
-- Indices are **normalized** for direct comparison.
-- **Major economic downturns**, such as the **2008 Financial Crisis** and **2020 COVID-19 crash**, are clearly visible.
+- This plot compares the performance of **S&P 500 (blue), DJIA (green), and HSI (orange)** over time.
+- Indices are **normalized** to allow direct comparisons of market behavior.
+- **Major economic events** such as the **2008 Financial Crisis** and **2020 COVID-19 crash** are clearly visible,
+  demonstrating periods of market downturn and recovery.
 
 ##### **S&P 500 Over Time**
 
 ![S&P 500 Over Time](../plots/analysis/sp500_over_time.png)
 
-- Highlights the long-term growth of the **S&P 500** alongside significant **market crashes and recoveries**.
+- Illustrates the **long-term upward trend** of the **S&P 500**, with major crashes and recoveries highlighted.
+- Serves as a reference for understanding short-term fluctuations in the broader market trend.
 
-#### Relationship Between Market Indices
+---
 
-##### S&P 500 vs DJIA
+#### **Relationship Between Market Indices**
+
+##### **S&P 500 vs DJIA**
 
 ![S&P 500 vs DJIA](../plots/analysis/sp500_vs_djia.png)
 
-- Shows a **strong linear relationship** between the **S&P 500** and **DJIA**.
-- Indicates that both indices tend to move **in the same direction**.
+- There is a **strong linear relationship** between the **S&P 500 and DJIA**, confirming that movements in one index are
+  highly indicative of the other.
+- This supports the inclusion of **DJIA** as a predictive feature for forecasting the S&P 500.
 
-##### S&P 500 vs Hang Seng Index (HSI)
+##### **S&P 500 vs Hang Seng Index (HSI)**
 
 ![S&P 500 vs HSI](../plots/analysis/sp500_vs_hsi.png)
 
-- Displays a **positive correlation** between **S&P 500** and **HSI**.
-- However, **HSI shows more variation**, indicating **regional differences** in market behavior.
+- The **S&P 500 and HSI** exhibit a **positive correlation**, but **HSI is more volatile**, suggesting that regional
+  economic differences impact price movements.
+- While related, HSI exhibits **higher variance**, meaning its predictive power may be more limited compared to DJIA.
 
-#### Trading Volume and Macroeconomic Factors
+---
 
-##### S&P 500 Trading Volume vs DJIA Trading Volume
+#### **Trading Volume and Macroeconomic Factors**
+
+##### **S&P 500 Trading Volume vs DJIA Trading Volume**
 
 ![S&P 500 Volume vs DJIA Volume](../plots/analysis/sp500_volume_vs_djia_volume.png)
 
-- **Trading volumes** of **S&P 500** and **DJIA** move together.
-- Suggests that **investor activity** is similar across both indices.
+- **S&P 500 and DJIA trading volumes** move in tandem, indicating **similar investor behavior** across both markets.
+- This supports the use of **trading volume trends** in our predictive models.
 
-##### Interest Rates (US3M) vs S&P 500 Trading Volume
+##### **Interest Rates (US3M) vs S&P 500 Trading Volume**
 
 ![US3M vs S&P 500 Volume](../plots/analysis/us3m_vs_sp500_volume.png)
 
-- **Negative correlation** between **interest rates (US3M)** and **S&P 500 trading volume**.
-- Higher interest rates usually lead to **lower market activity**.
+- A **negative correlation** between **US3M (interest rates) and S&P 500 trading volume** suggests that **higher
+  interest rates** reduce market activity.
+- This aligns with economic theory that rising interest rates lead to **lower investment in equities**.
 
-##### VIX (Volatility Index) vs S&P 500
+##### **VIX (Volatility Index) vs S&P 500**
 
 ![VIX vs S&P 500](../plots/analysis/vix_vs_sp500.png)
 
-- The **VIX (Volatility Index)** measures market uncertainty.
-- **High volatility** is often associated with **S&P 500 declines**.
+- **VIX measures market uncertainty**, and **high VIX values often align with S&P 500 declines**.
+- While not directly correlated in absolute values, VIX provides a **risk indicator**, which can be used to adjust
+  market forecasts under volatile conditions.
 
 ---
 
-#### Joblessness and Market Trends
+#### **Joblessness and Market Trends**
 
-##### S&P 500 Over Time with Joblessness Heatmap
+##### **S&P 500 Over Time with Joblessness Heatmap**
 
 ![S&P 500 with Joblessness](../plots/analysis/sp500_joblessness_heatmap.png)
 
-- This plot overlays **joblessness rates** on the **S&P 500 trend**.
-- **Red areas** indicate **high unemployment**, often following **economic downturns**.
-- The **2008 crisis** and **2020 pandemic** both saw **rising unemployment and falling stock prices**.
+- This plot overlays **joblessness rates** on the **S&P 500 trend** to examine economic downturns.
+- **Red areas** highlight periods of **high unemployment**, which often coincide with major market downturns, such as:
+    - **2008 Financial Crisis**
+    - **2020 COVID-19 pandemic**
+- Joblessness serves as an **economic health indicator**, reinforcing its inclusion in feature selection.
 
 ---
 
-#### Conclusion
+#### **Conclusion**
 
-The analysis highlights key relationships between stock indices, trading volumes, interest rates, and macroeconomic
-factors. These insights will guide feature selection for machine learning models to improve stock market predictions.
-
+The exploratory analysis identified **key financial indicators** with strong predictive potential. Features such as
+**DJIA, HSI, trading volumes, interest rates, and joblessness** were selected for machine learning models based on their
+observed correlations and economic significance. These findings guided the **feature engineering process**, ensuring the
+most informative signals were extracted from historical data.
 
 ---
 
