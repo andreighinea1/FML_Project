@@ -287,23 +287,21 @@ Below are the prediction plots for each model over different time horizons.
 
 ### **6.1 Key Takeaways**
 
-- **Feature Engineering**: Using rolling averages and lagged features helped capture market trends effectively.
+- **Feature Engineering**: Rolling averages and lagged features effectively captured market trends.
 - **Model Performance**: Ridge Regression was the best-performing model across all prediction horizons, followed by
   Linear Regression. SVR struggled even with short-term predictions, but deteriorating fast for longer-term predictions.
-- **Prediction Accuracy**: Short-term (1-7 days) predictions were highly accurate (**R² > 0.99**), but accuracy
-  decreased for longer-term forecasts.
+- **Prediction Accuracy**: Short-term forecasts (**1-7 days**) were highly accurate (**R² > 0.99**), but performance
+  declined over longer horizons.
 
 ### **6.2 Future Improvements**
 
-- **Deep Learning Models:** Investigate LSTMs or Transformers for better sequential modeling.
-- **Additional Features:** Introduce macroeconomic variables such as bond yields, credit spreads, and investor
-  sentiment.
-- **Extended Forecasts:** Experiment with prediction windows beyond **28 days**.
+- **Deep Learning**: Explore LSTMs or Transformers for better sequential modeling.
+- **Additional Data**: Incorporate macroeconomic indicators like bond yields and credit spreads.
+- **Longer Forecasts**: Extend predictions beyond **28 days** to assess model robustness.
 
 ---
 
 ### **Final Thoughts**
 
-This project successfully demonstrated that machine learning models, particularly **Ridge Regression**, can provide
-highly accurate short-term forecasts for the S&P 500. However, longer-term predictions remain challenging, requiring
-further feature engineering and potential deep learning techniques.
+Ridge Regression proved highly effective for **short-term S&P 500 forecasts**, but **long-term predictions remain a
+challenge**, requiring further feature engineering and potential deep learning approaches.
