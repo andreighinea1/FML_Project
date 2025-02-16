@@ -42,7 +42,7 @@ A **correlation heatmap** was used to visualize relationships between different 
 features are strongly associated with the **S&P 500**.
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/correlation_heatmap.png" alt="Correlation Heatmap" width="600"/>
+    <img src="plots/analysis/correlation_heatmap.png" alt="Correlation Heatmap" width="600"/>
 </div>
 
 ##### **Key Findings:**
@@ -74,7 +74,7 @@ indicators were included in the predictive models.
 ##### **Normalized Stock Indices Over Time**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/normalized_stock_indices.png" alt="Normalized Stock Indices" width="600"/>
+    <img src="plots/analysis/normalized_stock_indices.png" alt="Normalized Stock Indices" width="600"/>
 </div>
 
 - This plot compares the performance of **S&P 500 (blue), DJIA (green), and HSI (orange)** over time.
@@ -85,7 +85,7 @@ indicators were included in the predictive models.
 ##### **S&P 500 Over Time**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/sp500_over_time.png" alt="S&P 500 Over Time" width="600"/>
+    <img src="plots/analysis/sp500_over_time.png" alt="S&P 500 Over Time" width="600"/>
 </div>
 
 - Illustrates the **long-term upward trend** of the **S&P 500**, with major crashes and recoveries highlighted.
@@ -98,7 +98,7 @@ indicators were included in the predictive models.
 ##### **S&P 500 vs DJIA**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/sp500_vs_djia.png" alt="S&P 500 vs DJIA" width="600"/>
+    <img src="plots/analysis/sp500_vs_djia.png" alt="S&P 500 vs DJIA" width="600"/>
 </div>
 
 - There is a **strong linear relationship** between the **S&P 500 and DJIA**, confirming that movements in one index are
@@ -108,7 +108,7 @@ indicators were included in the predictive models.
 ##### **S&P 500 vs Hang Seng Index (HSI)**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/sp500_vs_hsi.png" alt="S&P 500 vs HSI" width="600"/>
+    <img src="plots/analysis/sp500_vs_hsi.png" alt="S&P 500 vs HSI" width="600"/>
 </div>
 
 - The **S&P 500 and HSI** exhibit a **positive correlation**, but **HSI is more volatile**, suggesting that regional
@@ -122,7 +122,7 @@ indicators were included in the predictive models.
 ##### **S&P 500 Trading Volume vs DJIA Trading Volume**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/sp500_volume_vs_djia_volume.png" alt="S&P 500 Volume vs DJIA Volume" width="600"/>
+    <img src="plots/analysis/sp500_volume_vs_djia_volume.png" alt="S&P 500 Volume vs DJIA Volume" width="600"/>
 </div>
 
 - **S&P 500 and DJIA trading volumes** move in tandem, indicating **similar investor behavior** across both markets.
@@ -131,7 +131,7 @@ indicators were included in the predictive models.
 ##### **Interest Rates (US3M) vs S&P 500 Trading Volume**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/us3m_vs_sp500_volume.png" alt="US3M vs S&P 500 Volume" width="600"/>
+    <img src="plots/analysis/us3m_vs_sp500_volume.png" alt="US3M vs S&P 500 Volume" width="600"/>
 </div>
 
 - A **negative correlation** between **US3M (interest rates) and S&P 500 trading volume** suggests that **higher
@@ -141,7 +141,7 @@ indicators were included in the predictive models.
 ##### **VIX (Volatility Index) vs S&P 500**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/vix_vs_sp500.png" alt="VIX vs S&P 500" width="600"/>
+    <img src="plots/analysis/vix_vs_sp500.png" alt="VIX vs S&P 500" width="600"/>
 </div>
 
 - **VIX measures market uncertainty**, and **high VIX values often align with S&P 500 declines**.
@@ -155,7 +155,7 @@ indicators were included in the predictive models.
 ##### **S&P 500 Over Time with Joblessness Heatmap**
 
 <div style="text-align: center;">
-    <img src="../plots/analysis/sp500_joblessness_heatmap.png" alt="S&P 500 with Joblessness" width="600"/>
+    <img src="plots/analysis/sp500_joblessness_heatmap.png" alt="S&P 500 with Joblessness" width="600"/>
 </div>
 
 - This plot overlays **joblessness rates** on the **S&P 500 trend** to examine economic downturns.
@@ -257,26 +257,26 @@ Below are the prediction plots for each model over different time horizons.
 <table>
 <tr>
     <td style="text-align: center;">
-        <img src="../plots/training/LinearRegression_day_1.png" alt="Linear Regression (1 Day)" width="400"/>
+        <img src="plots/training/LinearRegression_day_1.png" alt="Linear Regression (1 Day)" width="400"/>
     </td>
     <td style="text-align: center;">
-        <img src="../plots/training/LinearRegression_day_28.png" alt="Linear Regression (28 Days)" width="400"/>
-    </td>
-</tr>
-<tr>
-    <td style="text-align: center;">
-        <img src="../plots/training/Ridge_day_1.png" alt="Ridge Regression (1 Day)" width="400"/>
-    </td>
-    <td style="text-align: center;">
-        <img src="../plots/training/Ridge_day_28.png" alt="Ridge Regression (28 Days)" width="400"/>
+        <img src="plots/training/LinearRegression_day_28.png" alt="Linear Regression (28 Days)" width="400"/>
     </td>
 </tr>
 <tr>
     <td style="text-align: center;">
-        <img src="../plots/training/SVR_day_1.png" alt="SVR (1 Day)" width="400"/>
+        <img src="plots/training/Ridge_day_1.png" alt="Ridge Regression (1 Day)" width="400"/>
     </td>
     <td style="text-align: center;">
-        <img src="../plots/training/SVR_day_28.png" alt="SVR (28 Days)" width="400"/>
+        <img src="plots/training/Ridge_day_28.png" alt="Ridge Regression (28 Days)" width="400"/>
+    </td>
+</tr>
+<tr>
+    <td style="text-align: center;">
+        <img src="plots/training/SVR_day_1.png" alt="SVR (1 Day)" width="400"/>
+    </td>
+    <td style="text-align: center;">
+        <img src="plots/training/SVR_day_28.png" alt="SVR (28 Days)" width="400"/>
     </td>
 </tr>
 </table>
